@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rueda de la Vida Cortex</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0.2px 0.2px 0 #00FF00, -0.2px -0.2px 0 #00FF00, 0.2px -0.2px 0 #00FF00, -0.2px 0.2px 0 #00FF00;
+        }
+        .wheel-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        .controls {
+            margin-left: 20px;
+        }
+        .area-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+            width: 250px;
+        }
+        .area-name {
+            font-weight: bold;
+            text-shadow: 0.2px 0.2px 0 #00FF00, -0.2px -0.2px 0 #00FF00, 0.2px -0.2px 0 #00FF00, -0.2px 0.2px 0 #00FF00;
+        }
+        .score-control {
+            display: flex;
+            align-items: center;
+        }
+        button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .score {
+            margin: 0 10px;
+            font-weight: bold;
+            text-shadow: 0.2px 0.2px 0 #00FF00, -0.2px -0.2px 0 #00FF00, 0.2px -0.2px 0 #00FF00, -0.2px 0.2px 0 #00FF00;
+        }
+        #printButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        #printButton:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Áreas de la vida Cortex</h1>
+        <div class="wheel-container">
+            <svg width="400" height="400" viewBox="0 0 400 400" id="lifeWheel"></svg>
+            <div class="controls" id="controls"></div>
+        </div>
+        <button id="printButton">🖨️ Imprimir</button>
+    </div>
+
+    <script>
+        const areas = [
+            { name: 'Salud', color: '#7FBA7A' },
+            { name: 'Financiera', color: '#5FAF5A' },
+            { name: 'Familiar', color: '#3FA43A' },
+            { name: 'Profesional', color: '#1F991A' },
+            { name: 'Social', color: '#008E00' },
+            { name: 'Recreación', color: '#007F00' },
+            { name: 'Espiritualidad', color: '#006F00' },
+            { name: 'Desarrollo Personal', color: '#005F00' },
+            { name: 'Pareja', color: '#004F00' }
+        ];
+
+        let scores = areas.reduce((acc, area) => ({ ...acc, [area.name]: 5 }), {});
+
+        function createWheel() {
+            const svg = document.getElementById('lifeWheel');
+            svg.innerHTML = '';
+            areas.forEach((area, index) => {
+                const segment = createSegment(area, index);
+                svg.appendChild(segment);
+            });
+        }
+
+        function createSegment(area, index) {
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const angle = (index * 40 - 70) * Math.PI / 180;
+            const radius = 180;
+            const score = scores[area.name];
+            const filledRadius = (score / 10) * radius;
+            
+            const arcPath = `M 200 200 L ${200 + Math.cos(angle) * filledRadius} ${200 + Math.sin(angle) * filledRadius} A ${filledRadius} ${filledRadius} 0 0 1 ${200 + Math.cos(angle + 0.698) * filledRadius} ${200 + Math.sin(angle + 0.698) * filledRadius} Z`;
+            const arc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arc.setAttribute('d', arcPath);
+            arc.setAttribute('fill', area.color);
+            arc.setAttribute('stroke', 'white');
+            arc.setAttribute('stroke-width', '2');
+            group.appendChild(arc);
+
+            const textRadius = radius + 10;
+            const startAngle = index * 40 - 110;
+            const endAngle = startAngle + 40;
+            const textPath = `M ${200 + Math.cos(startAngle * Math.PI / 180) * textRadius},${200 + Math.sin(startAngle * Math.PI / 180) * textRadius} A ${textRadius},${textRadius} 0 0 1 ${200 + Math.cos(endAngle * Math.PI / 180) * textRadius},${200 + Math.sin(endAngle * Math.PI / 180) * textRadius}`;
+            
+            const textPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            textPathElement.setAttribute('id', `textPath-${index}`);
+            textPathElement.setAttribute('d', textPath);
+            textPathElement.setAttribute('fill', 'none');
+            group.appendChild(textPathElement);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('font-size', '12');
+            text.setAttribute('font-weight', 'bold');
+            text.setAttribute('fill', 'black');
+            text.setAttribute('stroke', '#00FF00');
+            text.setAttribute('stroke-width', '0.2');
+
+            const textPathRef = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+            textPathRef.setAttribute('href', `#textPath-${index}`);
+            textPathRef.setAttribute('startOffset', '50%');
+            textPathRef.setAttribute('text-anchor', 'middle');
+            textPathRef.textContent = area.name;
+
+            text.appendChild(textPathRef);
+            group.appendChild(text);
+
+            return group;
+        }
+
+        function createControls() {
+            const controls = document.getElementById('controls');
+            controls.innerHTML = '';
+            areas.forEach((area, index) => {
+                const control = document.createElement('div');
+                control.className = 'area-control';
+                control.style.backgroundColor = `${area.color}40`;
+                
+                const name = document.createElement('span');
+                name.className = 'area-name';
+                name.textContent = area.name;
+                
+                const scoreControl = document.createElement('div');
+                scoreControl.className = 'score-control';
+                
+                const minusButton = document.createElement('button');
+                minusButton.textContent = '−';
+                minusButton.onclick = () => updateScore(area.name, -1);
+                
+                const score = document.createElement('span');
+                score.className = 'score';
+                score.textContent = scores[area.name];
+                
+                const plusButton = document.createElement('button');
+                plusButton.textContent = '+';
+                plusButton.onclick = () => updateScore(area.name, 1);
+                
+                scoreControl.appendChild(minusButton);
+                scoreControl.appendChild(score);
+                scoreControl.appendChild(plusButton);
+                
+                control.appendChild(name);
+                control.appendChild(scoreControl);
+                controls.appendChild(control);
+            });
+        }
+
+        function updateScore(areaName, change) {
+            scores[areaName] = Math.max(0, Math.min(10, scores[areaName] + change));
+            createWheel();
+            createControls();
+        }
+
+        document.getElementById('printButton').addEventListener('click', () => {
+            window.print();
+        });
+
+        createWheel();
+        createControls();
+    </script>
+</body>
+</html>
